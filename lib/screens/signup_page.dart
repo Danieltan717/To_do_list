@@ -22,7 +22,7 @@ class _SignUpPageState extends State<SignUpPage> {
     }
     try {
       await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: _emailController.text.trim(),
+        email: _emailController.text.trim().toLowerCase(),
         password: _passwordController.text.trim(),
       );
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Account created. Please log in.")));

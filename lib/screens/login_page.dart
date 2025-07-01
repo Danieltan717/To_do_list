@@ -53,10 +53,28 @@ class _LoginPageState extends State<LoginPage> {
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
-                    onPressed: () {
-                      // TODO: Add password reset navigation
+                    onPressed: () async {
+                      final email = _emailController.text.trim();
+
+                      if (email.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("Please enter your email first.")),
+                        );
+                        return;
+                      }
+
+                      try {
+                        await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("Password reset email sent.")),
+                        );
+                      } on FirebaseAuthException catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text("Error: ${e.message}")),
+                        );
+                      }
                     },
-                    child: const Text("Forgot Password?", style: TextStyle(color: blue)),
+                      child: const Text("Forgot Password?", style: TextStyle(color: blue)),
                   ),
                 ),
 
