@@ -61,6 +61,15 @@ class _ShortTermTasksPageState extends State<ShortTermTasksPage>
             Tab(text: 'To-Do'),
             Tab(text: 'Completed'),
           ],
+          labelColor: Theme.of(context).brightness == Brightness.dark
+              ? Colors.white
+              : Colors.white,
+          unselectedLabelColor: Theme.of(context).textTheme.bodyLarge?.color,
+          indicatorColor: Theme.of(context).colorScheme.primary,
+          // labelColor: Theme.of(context).colorScheme.onPrimary,
+          // unselectedLabelColor: Theme.of(context).textTheme.bodyLarge?.color,
+          // indicatorColor: Theme.of(context).colorScheme.primary,
+          // indicatorWeight: 3.0,
           onTap: (_) => setState(() {
             _selectedTasks.clear();
           }),
@@ -101,11 +110,19 @@ class _ShortTermTasksPageState extends State<ShortTermTasksPage>
   }
 
   Widget _buildTasksList({required bool completed}) {
+
     return StreamBuilder<QuerySnapshot>(
       stream: _tasksStream(completed),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
-          return const Center(child: Text('Error loading tasks'));
+          // Explicitly set text color for error message
+          return Center(
+            child: Text(
+              'Error loading tasks',
+              style: TextStyle(
+              ),
+            ),
+          );
         }
 
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -115,10 +132,13 @@ class _ShortTermTasksPageState extends State<ShortTermTasksPage>
         final tasks = snapshot.data?.docs ?? [];
 
         if (tasks.isEmpty) {
+          // Explicitly set text color for empty state message
           return Center(
             child: Text(
               completed ? 'No completed tasks' : 'No tasks to do',
-              style: const TextStyle(fontSize: 16),
+              style: TextStyle(
+                fontSize: 16,
+              ),
             ),
           );
         }

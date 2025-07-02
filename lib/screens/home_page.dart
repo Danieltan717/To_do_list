@@ -227,6 +227,9 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Home Page"),
@@ -236,18 +239,6 @@ class _HomePageState extends State<HomePage> {
             onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              await FirebaseAuth.instance.signOut();
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (_) => const LoginPage()),
-              );
-            },
-          )
-        ],
       ),
       drawer: _buildDrawer(context),
       body: Padding(
@@ -260,7 +251,9 @@ class _HomePageState extends State<HomePage> {
               height: 550,
               width: 400,
               child: Card(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 elevation: 3,
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
@@ -271,6 +264,18 @@ class _HomePageState extends State<HomePage> {
                           onPressed: _selectFocusTask,
                           icon: const Icon(Icons.lightbulb_outline),
                           label: const Text("Pick Daily Focus Tasks"),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: colorScheme.primary,
+                            foregroundColor: colorScheme.onPrimary,
+                            elevation: 2,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
+                          ),
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -278,51 +283,75 @@ class _HomePageState extends State<HomePage> {
                         Expanded(
                           child: ListView(
                             children: [
-                              const Text('Today\'s Short-term Focus Tasks:', style: TextStyle(fontWeight: FontWeight.bold)),
+                              const Text(
+                                'Today\'s Short-term Focus Tasks:',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
                               const SizedBox(height: 8),
-                              ..._selectedTasks.where((task) => task['type'] == 'short').map((task) => Card(
-                                child: ListTile(
-                                  title: Text(task['name']),
-                                  trailing: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      IconButton(
-                                        icon: const Icon(Icons.check, color: Colors.green),
-                                        tooltip: 'Mark as Complete',
-                                        onPressed: () => _markTaskComplete(task),
-                                      ),
-                                      IconButton(
-                                        icon: const Icon(Icons.delete, color: Colors.red),
-                                        tooltip: 'Remove from Focus',
-                                        onPressed: () => setState(() => _selectedTasks.remove(task)),
-                                      ),
-                                    ],
+                              ..._selectedTasks
+                                  .where((task) => task['type'] == 'short')
+                                  .map(
+                                    (task) => Card(
+                                  color: colorScheme.surface,
+                                  elevation: 4,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: ListTile(
+                                    title: Text(task['name']),
+                                    trailing: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        IconButton(
+                                          icon: const Icon(Icons.check, color: Colors.green),
+                                          tooltip: 'Mark as Complete',
+                                          onPressed: () => _markTaskComplete(task),
+                                        ),
+                                        IconButton(
+                                          icon: const Icon(Icons.delete, color: Colors.red),
+                                          tooltip: 'Remove from Focus',
+                                          onPressed: () => setState(() => _selectedTasks.remove(task)),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
-                              )),
+                              ),
                               const SizedBox(height: 16),
-                              const Text('Today\'s Long-term Focus Tasks:', style: TextStyle(fontWeight: FontWeight.bold)),
+                              const Text(
+                                'Today\'s Long-term Focus Tasks:',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
                               const SizedBox(height: 8),
-                              ..._selectedTasks.where((task) => task['type'] == 'long').map((task) => Card(
-                                child: ListTile(
-                                  title: Text(task['name']),
-                                  trailing: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      IconButton(
-                                        icon: const Icon(Icons.check, color: Colors.green),
-                                        tooltip: 'Mark as Complete',
-                                        onPressed: () => _markTaskComplete(task),
-                                      ),
-                                      IconButton(
-                                        icon: const Icon(Icons.delete, color: Colors.red),
-                                        tooltip: 'Remove from Focus',
-                                        onPressed: () => setState(() => _selectedTasks.remove(task)),
-                                      ),
-                                    ],
+                              ..._selectedTasks
+                                  .where((task) => task['type'] == 'long')
+                                  .map(
+                                    (task) => Card(
+                                  color: colorScheme.surface,
+                                  elevation: 4,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: ListTile(
+                                    title: Text(task['name']),
+                                    trailing: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        IconButton(
+                                          icon: const Icon(Icons.check, color: Colors.green),
+                                          tooltip: 'Mark as Complete',
+                                          onPressed: () => _markTaskComplete(task),
+                                        ),
+                                        IconButton(
+                                          icon: const Icon(Icons.delete, color: Colors.red),
+                                          tooltip: 'Remove from Focus',
+                                          onPressed: () => setState(() => _selectedTasks.remove(task)),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
-                              )),
+                              ),
                             ],
                           ),
                         ),
@@ -341,61 +370,109 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+
   Widget _buildDrawer(BuildContext context) {
+    // Get the height of the status bar dynamically
+    final double statusBarHeight = MediaQuery.of(context).padding.top;
+    // Defines desired height for Menu header below status bar
+    final double menuTextAreaHeight = 56.0;
+
     return Drawer(
-      child: ListView(
-        padding: EdgeInsets.zero,
+      child: Column(
         children: [
-          DrawerHeader(
-            decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor,
-            ),
-            child: const Text(
-              'Menu',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 24,
+          // Custom header to achieve desired reduced height
+          Container(
+            // Total height = status bar height + desired height for the 'Menu' text area
+            height: statusBarHeight + menuTextAreaHeight,
+            color: Theme.of(context).primaryColor,
+            child: Padding(
+              // This padding pushes the content (the 'Menu' text) below the status bar,
+              // while the Container's color extends all the way to the top.
+              padding: EdgeInsets.only(top: statusBarHeight),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 16.0),
+                  child: Text(
+                    'Menu',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
-          ListTile(
-            leading: const Icon(Icons.access_time),
-            title: const Text('Short-term Tasks'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const ShortTermTasksPage(),
+
+          // Main menu items
+          Expanded(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                // Tile to access short-term tasks page
+                ListTile(
+                  leading: const Icon(Icons.access_time),
+                  title: const Text('Short-term Tasks'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ShortTermTasksPage(),
+                      ),
+                    );
+                  },
                 ),
-              );
-            },
+                // Tile to access long-term tasks page
+                ListTile(
+                  leading: const Icon(Icons.calendar_today),
+                  title: const Text('Long-term Tasks'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const LongTermTasksPage(),
+                      ),
+                    );
+                  },
+                ),
+                // Tile to access settings page
+                ListTile(
+                  leading: const Icon(Icons.settings),
+                  title: const Text('Settings'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const SettingsPage(),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
-          ListTile(
-            leading: const Icon(Icons.calendar_today),
-            title: const Text('Long-term Tasks'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const LongTermTasksPage(),
-                ),
-              );
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.settings),
-            title: const Text('Settings'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const SettingsPage(),
-                ),
-              );
-            },
+
+          // Divider + Logout pinned at the bottom
+          const Divider(),
+          Padding(
+            padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 32.0),
+            child: ListTile(
+              leading: const Icon(Icons.logout),
+              title: const Text('Logout'),
+              onTap: () async {
+                Navigator.pop(context); // Close drawer first
+                // Logout and navigate to login page
+                await FirebaseAuth.instance.signOut();
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LoginPage()),
+                );
+              },
+            ),
           ),
         ],
       ),
@@ -410,6 +487,7 @@ class _HomePageState extends State<HomePage> {
           height: 150,
           child: Column(
             children: [
+              // Tile that displays available short-term tasks in sheet
               ListTile(
                 leading: const Icon(Icons.access_time),
                 title: const Text('Short-term task'),
@@ -423,6 +501,7 @@ class _HomePageState extends State<HomePage> {
                   );
                 },
               ),
+              // Tile that displays available long-term tasks in sheet
               ListTile(
                 leading: const Icon(Icons.calendar_today),
                 title: const Text('Long-term task'),

@@ -57,6 +57,11 @@ class _LongTermTasksPageState extends State<LongTermTasksPage> with SingleTicker
             Tab(text: 'To-Do'),
             Tab(text: 'Completed'),
           ],
+          labelColor: Theme.of(context).brightness == Brightness.dark
+              ? Colors.white
+              : Colors.white,
+          unselectedLabelColor: Theme.of(context).textTheme.bodyLarge?.color,
+          indicatorColor: Theme.of(context).colorScheme.primary,
         ),
       ),
       body: Column(
