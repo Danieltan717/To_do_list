@@ -31,13 +31,25 @@ class _EditLongTermTaskPageState extends State<EditLongTermTaskPage> {
 
   late List<Subtask> _subtasks;
 
+  // Originals for change detection
+  late String _originalName;
+  DateTime? _originalDeadline;
+  late List<Subtask> _originalSubtasks;
+
   @override
   void initState() {
     super.initState();
     _nameController.text = widget.name;
+    _nameController.addListener(() {
+      setState(() {}); // triggers rebuild on name change
+    });
     _selectedDate = widget.deadline;
     _subtasks = widget.subtasks.map((s) => Subtask.fromMap(s)).toList();
     _parentCompleted = _subtasks.isNotEmpty && _subtasks.every((s) => s.completed);
+
+    _originalName = widget.name;
+    _originalDeadline = widget.deadline;
+    _originalSubtasks = List<Subtask>.from(_subtasks);
   }
 
   @override
@@ -111,6 +123,38 @@ class _EditLongTermTaskPageState extends State<EditLongTermTaskPage> {
     );
   }
 
+  void _showAddSubtaskDialog() {
+    final controller = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Add New Subtask'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(labelText: 'Subtask Name'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final newName = controller.text.trim();
+              if (newName.isNotEmpty) {
+                setState(() {
+                  _subtasks.add(Subtask(name: newName));
+                });
+                Navigator.of(context).pop();
+              }
+            },
+            child: const Text('Add'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _removeSubtask(int index) {
     setState(() {
       _subtasks.removeAt(index);
@@ -121,11 +165,13 @@ class _EditLongTermTaskPageState extends State<EditLongTermTaskPage> {
   void _toggleParentComplete(bool complete) {
     setState(() {
       _parentCompleted = complete;
-      _subtasks = _subtasks.map((s) => Subtask(
+      _subtasks = _subtasks
+          .map((s) => Subtask(
         name: s.name,
         deadline: s.deadline,
         completed: complete,
-      )).toList();
+      ))
+          .toList();
     });
   }
 
@@ -168,6 +214,30 @@ class _EditLongTermTaskPageState extends State<EditLongTermTaskPage> {
 
   String _formatDate(DateTime date) {
     return '${date.day.toString().padLeft(2, '0')}-${date.month.toString().padLeft(2, '0')}-${date.year}';
+  }
+
+  bool get _hasChanges {
+    if (_nameController.text.trim() != _originalName) return true;
+    if (_selectedDate != _originalDeadline) return true;
+    if (_subtasks.length != _originalSubtasks.length) return true;
+
+    for (int i = 0; i < _subtasks.length; i++) {
+      final s1 = _subtasks[i];
+      final s2 = i < _originalSubtasks.length ? _originalSubtasks[i] : null;
+      if (s2 == null ||
+          s1.name != s2.name ||
+          s1.completed != s2.completed ||
+          s1.deadline != s2.deadline) {
+        return true;
+      }
+    }
+
+    if (_parentCompleted !=
+        (_originalSubtasks.isNotEmpty && _originalSubtasks.every((s) => s.completed))) {
+      return true;
+    }
+
+    return false;
   }
 
   @override
@@ -234,7 +304,8 @@ class _EditLongTermTaskPageState extends State<EditLongTermTaskPage> {
                                 deadline: subtask.deadline,
                                 completed: checked ?? false,
                               );
-                              _parentCompleted = _subtasks.isNotEmpty && _subtasks.every((s) => s.completed);
+                              _parentCompleted =
+                                  _subtasks.isNotEmpty && _subtasks.every((s) => s.completed);
                             });
                           },
                         ),
@@ -267,7 +338,7 @@ class _EditLongTermTaskPageState extends State<EditLongTermTaskPage> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: _isSubmitting ? null : _submit,
+                    onPressed: (!_hasChanges || _isSubmitting) ? null : _submit,
                     child: _isSubmitting
                         ? const SizedBox(
                       width: 24,
@@ -284,6 +355,11 @@ class _EditLongTermTaskPageState extends State<EditLongTermTaskPage> {
             ),
           ),
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _showAddSubtaskDialog,
+        child: const Icon(Icons.add),
+        tooltip: 'Add New Subtask',
       ),
     );
   }

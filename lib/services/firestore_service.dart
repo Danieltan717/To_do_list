@@ -31,14 +31,7 @@ class FirestoreService {
       'userId': userId,
       'completed': false,
       'createdAt': FieldValue.serverTimestamp(),
-      'subtasks': subtasks?.map((s) => {
-        'name': s['name'],
-        'deadline': s['deadline'] != null
-            ? Timestamp.fromDate(s['deadline'])
-            : null,
-        'completed': s['completed'] ?? false,
-      }).toList() ??
-          [],
+      'subtasks': subtasks ?? [],
     });
   }
 
@@ -137,12 +130,6 @@ class FirestoreService {
 
     await batch.commit();
   }
-
-  // Future<void> markTasksAsComplete({
-  //   required List<String> taskIds,
-  //   required String userId,
-  //   required bool complete,
-  // }) async {
 
   Stream<QuerySnapshot> getUserTasks() {
     final userId = FirebaseAuth.instance.currentUser?.uid;

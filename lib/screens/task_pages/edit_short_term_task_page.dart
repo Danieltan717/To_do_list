@@ -25,17 +25,32 @@ class _EditShortTermTaskPageState extends State<EditShortTermTaskPage> {
   DateTime? _selectedDate;
   bool _isSubmitting = false;
 
+  late String _originalName;
+  late DateTime _originalDeadline;
+
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.name);
+    _nameController.addListener(() {
+      setState(() {}); // 🔑 listen for name changes to trigger rebuild
+    });
+
     _selectedDate = widget.deadline;
+
+    _originalName = widget.name;
+    _originalDeadline = widget.deadline;
   }
 
   @override
   void dispose() {
     _nameController.dispose();
     super.dispose();
+  }
+
+  bool get _hasChanges {
+    return _nameController.text.trim() != _originalName ||
+        _selectedDate != _originalDeadline;
   }
 
   Future<void> _selectDate() async {
@@ -60,6 +75,10 @@ class _EditShortTermTaskPageState extends State<EditShortTermTaskPage> {
       return;
     }
 
+    setState(() {
+      _isSubmitting = true;
+    });
+
     await FirestoreService().updateTask(
       taskId: widget.taskId,
       userId: widget.userId,
@@ -67,7 +86,9 @@ class _EditShortTermTaskPageState extends State<EditShortTermTaskPage> {
       deadline: _selectedDate,
     );
 
-    if (mounted) Navigator.pop(context);
+    if (mounted) {
+      Navigator.pop(context);
+    }
   }
 
   String _formatDate(DateTime date) {
@@ -115,7 +136,7 @@ class _EditShortTermTaskPageState extends State<EditShortTermTaskPage> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: _isSubmitting ? null : _saveChanges,
+                    onPressed: _isSubmitting || !_hasChanges ? null : _saveChanges,
                     child: _isSubmitting
                         ? const SizedBox(
                       width: 24,
